@@ -102,6 +102,28 @@ void main() {
       expect(find.text('Campo obrigatório'), findsOneWidget);
     });
 
+    testWidgets('should fall back to onChanged on submit when onSubmitted is null', (tester) async {
+      final changed = <String?>[];
+
+      await pumpField(
+        tester,
+        AppTextField(
+          focusNode: focusNode,
+          controller: controller,
+          hintText: 'Descrição',
+          onChanged: changed.add,
+        ),
+      );
+
+      await tester.enterText(find.byType(TextFormField), 'abc');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+
+      // Sem onSubmitted, o submit também dispara onChanged: uma vez na
+      // digitação e outra na confirmação do teclado.
+      expect(changed, ['abc', 'abc']);
+    });
+
     testWidgets('should route submit to onSubmitted without an extra onChanged', (tester) async {
       final submitted = <String>[];
       final changed = <String?>[];

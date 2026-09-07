@@ -96,4 +96,8 @@ Versão do Flutter fixada em `.fvmrc` (3.41.9).
 fvm flutter pub get
 fvm flutter analyze
 fvm flutter test
+fvm flutter test --coverage   # cobertura mínima: 80% (hoje em 100%)
 ```
+
+Cobertura é requisito do package: **mínimo de 80% de linhas**. Leia o resultado
+com `lcov --summary coverage/lcov.info` ou `genhtml coverage/lcov.info -o coverage/html`.

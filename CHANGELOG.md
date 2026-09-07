@@ -2,6 +2,8 @@
 
 ## 0.1.1
 
+- Cobertura de testes em 100% das linhas (mínimo do package: 80%).
+
 - `CurrencyInputFormatter` passa a reaproveitar as instâncias de `NumberFormat`
   por configuração (`locale`, `symbol`, `decimalDigits`). Ao parametrizar as
   casas decimais na 0.1.0, o formatador deixou de ser estático e era

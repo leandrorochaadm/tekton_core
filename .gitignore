@@ -5,3 +5,4 @@ pubspec.lock
 .fvm/
 .idea/
 *.iml
+coverage/
