@@ -102,7 +102,7 @@ void main() {
       expect(find.text('Campo obrigatório'), findsOneWidget);
     });
 
-    testWidgets('should call onSubmitted instead of onChanged on submit', (tester) async {
+    testWidgets('should route submit to onSubmitted without an extra onChanged', (tester) async {
       final submitted = <String>[];
       final changed = <String?>[];
 

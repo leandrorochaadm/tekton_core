@@ -14,8 +14,8 @@ class CurrencyInputFormatter extends TextInputFormatter {
     this.decimalDigits = 2,
     this.locale = 'pt_BR',
     this.symbol = '',
-  }) : assert(decimalDigits >= 0, 'decimalDigits não pode ser negativo'),
-       assert(maxDigits > 0, 'maxDigits deve ser positivo');
+  })  : assert(decimalDigits >= 0, 'decimalDigits não pode ser negativo'),
+        assert(maxDigits > 0, 'maxDigits deve ser positivo');
 
   /// Limite de dígitos para evitar overflow numérico (até bilhões com centavos).
   final int maxDigits;
@@ -31,11 +31,7 @@ class CurrencyInputFormatter extends TextInputFormatter {
   /// já indicar a moeda.
   final String symbol;
 
-  late final NumberFormat _formatter = NumberFormat.currency(
-    locale: locale,
-    symbol: symbol,
-    decimalDigits: decimalDigits,
-  );
+  late final NumberFormat _formatter = _numberFormat(locale, symbol, decimalDigits);
 
   @override
   TextEditingValue formatEditUpdate(
@@ -84,12 +80,21 @@ class CurrencyInputFormatter extends TextInputFormatter {
     String locale = 'pt_BR',
     String symbol = '',
   }) {
-    final formatter = NumberFormat.currency(
-      locale: locale,
-      symbol: symbol,
-      decimalDigits: decimalDigits,
-    );
+    final formatter = _numberFormat(locale, symbol, decimalDigits);
     return formatter.format(value / _divisor(decimalDigits)).trim();
+  }
+
+  /// `NumberFormat` é caro de construir (carrega os símbolos do locale). Como as
+  /// combinações usadas por um app são poucas e fixas, guarda uma instância por
+  /// configuração — o campo é reconstruído a cada rebuild da tela, e [format] é
+  /// chamado a cada linha ao montar listas.
+  static final Map<String, NumberFormat> _formatterCache = <String, NumberFormat>{};
+
+  static NumberFormat _numberFormat(String locale, String symbol, int decimalDigits) {
+    return _formatterCache.putIfAbsent(
+      '$locale|$symbol|$decimalDigits',
+      () => NumberFormat.currency(locale: locale, symbol: symbol, decimalDigits: decimalDigits),
+    );
   }
 
   static int _divisor(int decimalDigits) {

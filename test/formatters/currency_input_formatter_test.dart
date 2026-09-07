@@ -3,8 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tekton_core/tekton_core.dart';
 
 void main() {
-  _decimalDigitsSuite();
-
   group('CurrencyInputFormatter', () {
     // Aplica o formatter como o framework faria ao digitar: ignora o oldValue
     // e recalcula a partir do texto novo.
@@ -17,8 +15,7 @@ void main() {
     }
 
     group('formatEditUpdate', () {
-      test('should format digits as brazilian currency treating them as cents',
-          () {
+      test('should format digits as brazilian currency treating them as cents', () {
         final result = applyInput('100000');
 
         expect(result.text, '1.000,00');
@@ -129,9 +126,7 @@ void main() {
       });
     });
   });
-}
 
-void _decimalDigitsSuite() {
   group('CurrencyInputFormatter.decimalDigits', () {
     TextEditingValue applyInput(String text, {required int decimalDigits}) {
       final formatter = CurrencyInputFormatter(decimalDigits: decimalDigits);

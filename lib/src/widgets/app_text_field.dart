@@ -131,8 +131,7 @@ class AppTextField extends StatelessWidget {
         final bool isDisabled = readOnly && onTap == null;
         // Campo desabilitado nunca exibe o botão de limpar — não deve permitir
         // apagar o valor (ex.: limite derivado das subcategorias).
-        final Widget suffixIcon =
-            !isDisabled && controller.text.isNotEmpty ? buttonClear : iconReturn;
+        final Widget suffixIcon = !isDisabled && controller.text.isNotEmpty ? buttonClear : iconReturn;
 
         return TextFormField(
           validator: validator,

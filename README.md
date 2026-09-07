@@ -10,7 +10,7 @@ dependencies:
   tekton_core:
     git:
       url: https://github.com/leandrorochaadm/tekton_core.git
-      ref: v0.1.0
+      ref: v0.1.1
 ```
 
 ```dart
