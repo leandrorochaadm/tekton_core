@@ -1,7 +1,8 @@
-/// Kit base compartilhado entre projetos Flutter.
+/// Base kit shared across Flutter projects.
 ///
-/// Reúne widgets, formatters e utilitários reaproveitados em mais de um app.
+/// Gathers widgets, formatters and utilities reused by more than one app.
 library;
 
-export 'src/formatters/currency_input_formatter.dart';
+export 'src/formatters/unit_input_formatter.dart';
+export 'src/formatters/unit_spec.dart';
 export 'src/widgets/app_text_field.dart';

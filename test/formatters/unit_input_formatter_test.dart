@@ -3,11 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tekton_core/tekton_core.dart';
 
 void main() {
-  group('CurrencyInputFormatter', () {
+  group('UnitInputFormatter', () {
     // Aplica o formatter como o framework faria ao digitar: ignora o oldValue
     // e recalcula a partir do texto novo.
     TextEditingValue applyInput(String text, {int maxDigits = 12}) {
-      final formatter = CurrencyInputFormatter(maxDigits: maxDigits);
+      final formatter = UnitInputFormatter(maxDigits: maxDigits);
       return formatter.formatEditUpdate(
         TextEditingValue.empty,
         TextEditingValue(text: text),
@@ -65,53 +65,72 @@ void main() {
 
     group('parse', () {
       test('should parse formatted currency into cents', () {
-        expect(CurrencyInputFormatter.parse('1.000,00'), 100000);
+        expect(UnitInputFormatter.parse('1.000,00'), 100000);
       });
 
       test('should parse value below one real into cents', () {
-        expect(CurrencyInputFormatter.parse('0,50'), 50);
+        expect(UnitInputFormatter.parse('0,50'), 50);
       });
 
       test('should parse values in the millions range into cents', () {
-        expect(CurrencyInputFormatter.parse('1.234.567,89'), 123456789);
+        expect(UnitInputFormatter.parse('1.234.567,89'), 123456789);
       });
 
       test('should parse small cents exactly (no floating point drift)', () {
-        expect(CurrencyInputFormatter.parse('0,07'), 7);
+        expect(UnitInputFormatter.parse('0,07'), 7);
       });
 
       test('should parse value ignoring currency symbol and spaces', () {
-        expect(CurrencyInputFormatter.parse(r'R$ 50,00'), 5000);
+        expect(UnitInputFormatter.parse(r'R$ 50,00'), 5000);
       });
 
       test('should return zero for empty text', () {
-        expect(CurrencyInputFormatter.parse(''), 0);
+        expect(UnitInputFormatter.parse(''), 0);
       });
 
       test('should return zero when there are no digits', () {
-        expect(CurrencyInputFormatter.parse('abc'), 0);
+        expect(UnitInputFormatter.parse('abc'), 0);
+      });
+      test('should read every digit when maxDigits is omitted', () {
+        expect(UnitInputFormatter.parse('1.234.567.890'), 1234567890);
+      });
+
+      test('should clamp extra digits when maxDigits is given', () {
+        expect(UnitInputFormatter.parse('1.234.567.890', maxDigits: 9), 123456789);
       });
     });
 
     group('format', () {
       test('should format cents with thousands separator and decimals', () {
-        expect(CurrencyInputFormatter.format(100000), '1.000,00');
+        expect(UnitInputFormatter.format(100000), '1.000,00');
       });
 
       test('should format cents below one real with leading zero', () {
-        expect(CurrencyInputFormatter.format(50), '0,50');
+        expect(UnitInputFormatter.format(50), '0,50');
       });
 
       test('should format zero', () {
-        expect(CurrencyInputFormatter.format(0), '0,00');
+        expect(UnitInputFormatter.format(0), '0,00');
       });
 
       test('should format millions of cents with grouped thousands', () {
-        expect(CurrencyInputFormatter.format(123456789), '1.234.567,89');
+        expect(UnitInputFormatter.format(123456789), '1.234.567,89');
       });
 
       test('should format small cents value', () {
-        expect(CurrencyInputFormatter.format(7), '0,07');
+        expect(UnitInputFormatter.format(7), '0,07');
+      });
+
+      test('should clamp extra digits when maxDigits is given', () {
+        expect(UnitInputFormatter.format(9999999999, maxDigits: 9), '9.999.999,99');
+        expect(UnitInputFormatter.format(9999999999), '99.999.999,99');
+      });
+
+      test('should keep the sign of a negative value while clamping', () {
+        expect(UnitInputFormatter.format(-500), contains('5,00'));
+        expect(UnitInputFormatter.format(-500), startsWith('-'));
+        expect(UnitInputFormatter.format(-9999999999, maxDigits: 9), contains('9.999.999,99'));
+        expect(UnitInputFormatter.format(-9999999999, maxDigits: 9), startsWith('-'));
       });
     });
 
@@ -119,17 +138,17 @@ void main() {
       test('parse should reverse format for arbitrary cents', () {
         const valueInCents = 123456;
 
-        final formatted = CurrencyInputFormatter.format(valueInCents);
-        final parsed = CurrencyInputFormatter.parse(formatted);
+        final formatted = UnitInputFormatter.format(valueInCents);
+        final parsed = UnitInputFormatter.parse(formatted);
 
         expect(parsed, valueInCents);
       });
     });
   });
 
-  group('CurrencyInputFormatter.decimalDigits', () {
+  group('UnitInputFormatter.decimalDigits', () {
     TextEditingValue applyInput(String text, {required int decimalDigits}) {
-      final formatter = CurrencyInputFormatter(decimalDigits: decimalDigits);
+      final formatter = UnitInputFormatter(decimalDigits: decimalDigits);
       return formatter.formatEditUpdate(
         TextEditingValue.empty,
         TextEditingValue(text: text),
@@ -137,7 +156,7 @@ void main() {
     }
 
     test('should default to two decimal digits', () {
-      expect(CurrencyInputFormatter().decimalDigits, 2);
+      expect(UnitInputFormatter().decimalDigits, 2);
     });
 
     test('should format without decimals when decimalDigits is zero', () {
@@ -153,18 +172,18 @@ void main() {
     });
 
     test('should keep parse independent of decimalDigits', () {
-      expect(CurrencyInputFormatter.parse('1.000'), 1000);
-      expect(CurrencyInputFormatter.parse('1.000,000'), 1000000);
+      expect(UnitInputFormatter.parse('1.000'), 1000);
+      expect(UnitInputFormatter.parse('1.000,000'), 1000000);
     });
 
     test('should format smallest unit back to text honoring decimalDigits', () {
-      expect(CurrencyInputFormatter.format(1000, decimalDigits: 0), '1.000');
-      expect(CurrencyInputFormatter.format(100000), '1.000,00');
-      expect(CurrencyInputFormatter.format(1000000, decimalDigits: 3), '1.000,000');
+      expect(UnitInputFormatter.format(1000, decimalDigits: 0), '1.000');
+      expect(UnitInputFormatter.format(100000), '1.000,00');
+      expect(UnitInputFormatter.format(1000000, decimalDigits: 3), '1.000,000');
     });
 
     test('should reject negative decimalDigits', () {
-      expect(() => CurrencyInputFormatter(decimalDigits: -1), throwsAssertionError);
+      expect(() => UnitInputFormatter(decimalDigits: -1), throwsAssertionError);
     });
   });
 }

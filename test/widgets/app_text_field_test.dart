@@ -162,7 +162,7 @@ void main() {
       await tester.enterText(find.byType(TextFormField), '100000');
       await tester.pump();
 
-      expect(controller.text, '1.000,00');
+      expect(controller.text, 'R\$\u{A0}1.000,00');
     });
 
     testWidgets('should mask without decimals when decimalDigits is zero', (tester) async {
@@ -179,7 +179,148 @@ void main() {
       await tester.enterText(find.byType(TextFormField), '1000');
       await tester.pump();
 
-      expect(controller.text, '1.000');
+      expect(controller.text, 'R\$\u{A0}1.000');
+    });
+  });
+
+  group('AppTextField.suffixText', () {
+    testWidgets('should render the suffix on an empty unfocused field', (tester) async {
+      await pumpField(
+        tester,
+        AppTextField(
+          focusNode: focusNode,
+          controller: controller,
+          hintText: 'Peso',
+          suffixText: 'kg',
+        ),
+      );
+
+      expect(find.text('kg'), findsOneWidget);
+    });
+
+    testWidgets('should render the suffix on a filled field', (tester) async {
+      controller.text = '1.000,000';
+
+      await pumpField(
+        tester,
+        AppTextField(
+          focusNode: focusNode,
+          controller: controller,
+          hintText: 'Peso',
+          suffixText: 'kg',
+        ),
+      );
+
+      expect(find.text('kg'), findsOneWidget);
+    });
+  });
+
+  group('AppTextField.weight', () {
+    testWidgets('should mask typed digits as grams and show the kg suffix', (tester) async {
+      await pumpField(
+        tester,
+        AppTextField.weight(
+          focusNode: focusNode,
+          controller: controller,
+          hintText: 'Peso',
+        ),
+      );
+
+      await tester.enterText(find.byType(TextFormField), '1000000');
+      await tester.pump();
+
+      expect(controller.text, '1.000,000');
+      expect(controller.text, isNot(contains('kg')));
+      expect(find.text('kg'), findsOneWidget);
+    });
+
+    testWidgets('should let the preset read the typed value back in grams', (tester) async {
+      await pumpField(
+        tester,
+        AppTextField.weight(
+          focusNode: focusNode,
+          controller: controller,
+          hintText: 'Peso',
+        ),
+      );
+
+      await tester.enterText(find.byType(TextFormField), '1000000');
+      await tester.pump();
+
+      expect(UnitSpec.weight.parse(controller.text), 1000000);
+    });
+
+    testWidgets('should keep the clear button on a filled measurement field', (tester) async {
+      await pumpField(
+        tester,
+        AppTextField.weight(
+          focusNode: focusNode,
+          controller: controller,
+          hintText: 'Peso',
+        ),
+      );
+
+      await tester.enterText(find.byType(TextFormField), '1000000');
+      await tester.pump();
+
+      expect(find.byIcon(Icons.close), findsOneWidget);
+    });
+  });
+
+  group('AppTextField.length', () {
+    testWidgets('should mask typed digits as centimeters and show the m suffix', (tester) async {
+      await pumpField(
+        tester,
+        AppTextField.length(
+          focusNode: focusNode,
+          controller: controller,
+          hintText: 'Altura',
+        ),
+      );
+
+      await tester.enterText(find.byType(TextFormField), '100000');
+      await tester.pump();
+
+      expect(controller.text, '1.000,00');
+      expect(find.text('m'), findsOneWidget);
+    });
+  });
+
+  group('AppTextField.volume', () {
+    testWidgets('should mask typed digits as milliliters and show the L suffix', (tester) async {
+      await pumpField(
+        tester,
+        AppTextField.volume(
+          focusNode: focusNode,
+          controller: controller,
+          hintText: 'Volume',
+        ),
+      );
+
+      await tester.enterText(find.byType(TextFormField), '1000000');
+      await tester.pump();
+
+      expect(controller.text, '1.000,000');
+      expect(find.text('L'), findsOneWidget);
+    });
+  });
+
+  group('AppTextField.unit', () {
+    testWidgets('should mask typed digits according to the given spec', (tester) async {
+      await pumpField(
+        tester,
+        AppTextField.unit(
+          focusNode: focusNode,
+          controller: controller,
+          hintText: 'Quantidade',
+          spec: UnitSpec.length,
+        ),
+      );
+
+      await tester.enterText(find.byType(TextFormField), '100000');
+      await tester.pump();
+
+      expect(controller.text, '1.000,00');
     });
   });
 }
