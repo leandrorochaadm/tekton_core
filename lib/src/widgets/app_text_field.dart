@@ -459,9 +459,15 @@ class _AppTextFieldState extends State<AppTextField> {
         final Widget? clear =
             widget.enabled && !isDisabled && widget.showClearButton && controller.text.isNotEmpty ? buttonClear : null;
         // The slot is only taken when this widget has something to put in it;
-        // otherwise the caller's own suffixIcon (if any) survives the copyWith.
-        final Widget suffix = clear ??
-            (widget.showSuffixIcon ? iconChevronRight : widget.decoration?.suffixIcon ?? const SizedBox.shrink());
+        // otherwise the null below leaves the caller's own suffixIcon — or no
+        // suffixIcon at all — untouched by the copyWith.
+        //
+        // Null, and NEVER an empty widget: `InputDecorator` wraps any
+        // suffixIcon in a box of `kMinInteractiveDimension` (48 pt), so a
+        // `SizedBox.shrink()` in the slot spends 48 pt showing nothing. On a
+        // column narrow enough to turn the clear button off, that is half the
+        // field.
+        final Widget? suffix = clear ?? (widget.showSuffixIcon ? iconChevronRight : null);
 
         return TextFormField(
           validator: widget.validator,

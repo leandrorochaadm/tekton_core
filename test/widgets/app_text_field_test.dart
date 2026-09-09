@@ -513,6 +513,49 @@ void main() {
       expect(find.byIcon(Icons.close), findsNothing);
     });
 
+    testWidgets('should leave the suffix slot empty when there is nothing to show', (tester) async {
+      await pumpField(
+        tester,
+        AppTextField(
+          focusNode: focusNode,
+          controller: controller,
+          hintText: 'Descrição',
+          showClearButton: false,
+        ),
+      );
+
+      // Empty means absent, not an empty widget: `InputDecorator` reserves 48 pt
+      // for whatever sits in this slot.
+      expect(tester.widget<TextField>(find.byType(TextField)).decoration!.suffixIcon, isNull);
+    });
+
+    testWidgets('should spend no width on the suffix slot when the clear button is off', (tester) async {
+      const double columnWidth = 104;
+
+      await pumpField(
+        tester,
+        SizedBox(
+          width: columnWidth,
+          child: AppTextField(
+            focusNode: focusNode,
+            controller: controller,
+            hintText: 'Quanto vem',
+            showClearButton: false,
+          ),
+        ),
+      );
+
+      await tester.enterText(find.byType(TextFormField), '1000');
+      await tester.pump();
+
+      // The text keeps the column minus its own padding. A 48 pt box in the
+      // suffix slot would leave it under half of that.
+      expect(
+        tester.getSize(find.byType(EditableText)).width,
+        greaterThan(columnWidth / 2),
+      );
+    });
+
     testWidgets('should take the label from the decoration, and let hintText win over it', (tester) async {
       await pumpField(
         tester,
