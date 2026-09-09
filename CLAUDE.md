@@ -1,7 +1,7 @@
 # tekton_core
 
 Kit base compartilhado entre projetos Flutter: widgets, formatters e utilitários
-reaproveitados em mais de um app. Publicado por Git (`ref: vX.Y.Z`), sem `pub.dev`.
+reaproveitados em mais de um app. Publicado por Git (`ref: main`), sem `pub.dev`.
 
 ## Idioma — regra obrigatória
 

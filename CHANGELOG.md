@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.3.0
+
+Compatível com a 0.2.0: tudo o que entra é opcional e o default repete o
+comportamento de hoje — nenhum app existente muda de aparência.
+
+- `AppTextField.focusNode`, `.controller` e `.hintText` deixam de ser
+  obrigatórios. Sem `focusNode` ou `controller`, o widget cria o seu e o
+  descarta no fim — nunca o que veio de fora. Adotar o campo num formulário
+  comum deixa de cobrar um `FocusNode` e um `TextEditingController` criados à
+  mão, e de transformar em `StatefulWidget` toda tela que não fosse uma.
+- `AppTextField.initialValue` — texto de abertura do campo, quando o
+  `controller` é nulo. Passar os dois juntos dispara um `assert`.
+- `AppTextField.decoration` — a `InputDecoration` do chamador. O widget
+  sobrepõe só o que é dele (rótulo flutuante, preenchimento, botão de limpar,
+  `errorText` e `suffixText`); `helperText`, `errorMaxLines`, `prefixText`,
+  `prefixIcon`, `border`, `isDense` e `contentPadding` passam a vir daqui. Um
+  `suffixIcon` passado por aqui aparece quando o widget não tem sufixo próprio.
+- `AppTextField.enabled` — campo indisponível durante um salvamento, **sem** a
+  tarja cinza do `readOnly` sem `onTap`. Enquanto `false`, o `✕` não aparece.
+- `AppTextField.showClearButton` — desliga o `✕` no campo estreito demais para
+  gastar 24 px com ele.
+- `AppTextField.autofocus` — o campo pega o foco assim que aparece.
+- `AppTextField.textCapitalization` e `.textInputAction` — antes fixos em
+  `sentences` e `done`.
+- As cinco factories (`unit`, `currency`, `weight`, `length`, `volume`) recebem
+  todos os parâmetros acima, com um teste por factory que a constrói sem
+  `focusNode`, sem `controller` e sem `hintText`.
+
 ## 0.2.0
 
 **Quebra de compatibilidade.** Três mudanças exigem ajuste nos apps consumidores:

@@ -9,12 +9,16 @@ import '../formatters/unit_spec.dart';
 ///
 /// Reacts to its own [controller]: the suffix toggles between the clear button
 /// (while there is text) and an optional chevron ([showSuffixIcon]).
-class AppTextField extends StatelessWidget {
+///
+/// [focusNode] and [controller] are optional: when either is `null`, the widget
+/// creates its own and disposes it — never the one that came from outside.
+class AppTextField extends StatefulWidget {
   const AppTextField({
     super.key,
-    required this.focusNode,
-    required this.controller,
-    required this.hintText,
+    this.focusNode,
+    this.controller,
+    this.hintText,
+    this.initialValue,
     this.onTap,
     this.readOnly = false,
     this.showSuffixIcon = false,
@@ -28,7 +32,16 @@ class AppTextField extends StatelessWidget {
     this.errorText,
     this.disabledFillColor,
     this.suffixText,
-  });
+    this.decoration,
+    this.enabled = true,
+    this.showClearButton = true,
+    this.autofocus = false,
+    this.textCapitalization = TextCapitalization.sentences,
+    this.textInputAction = TextInputAction.done,
+  }) : assert(
+          controller == null || initialValue == null,
+          'Pass initialValue only when controller is null — a controller already carries its own text.',
+        );
 
   /// Numeric field for any quantity, configured by [spec].
   ///
@@ -41,10 +54,11 @@ class AppTextField extends StatelessWidget {
   /// the mask produces.
   factory AppTextField.unit({
     Key? key,
-    required FocusNode focusNode,
-    required TextEditingController controller,
-    required String hintText,
+    FocusNode? focusNode,
+    TextEditingController? controller,
+    String? hintText,
     required UnitSpec spec,
+    String? initialValue,
     bool readOnly = false,
     bool showSuffixIcon = false,
     void Function(String?)? onChanged,
@@ -54,12 +68,19 @@ class AppTextField extends StatelessWidget {
     String? Function(String?)? validator,
     String? errorText,
     Color? disabledFillColor,
+    InputDecoration? decoration,
+    bool enabled = true,
+    bool showClearButton = true,
+    bool autofocus = false,
+    TextCapitalization textCapitalization = TextCapitalization.sentences,
+    TextInputAction textInputAction = TextInputAction.done,
   }) {
     return AppTextField(
       key: key,
       focusNode: focusNode,
       controller: controller,
       hintText: hintText,
+      initialValue: initialValue,
       readOnly: readOnly,
       showSuffixIcon: showSuffixIcon,
       onChanged: onChanged,
@@ -69,6 +90,12 @@ class AppTextField extends StatelessWidget {
       validator: validator,
       errorText: errorText,
       disabledFillColor: disabledFillColor,
+      decoration: decoration,
+      enabled: enabled,
+      showClearButton: showClearButton,
+      autofocus: autofocus,
+      textCapitalization: textCapitalization,
+      textInputAction: textInputAction,
       suffixText: spec.suffix,
       keyboardType: TextInputType.number,
       inputFormatters: [spec.formatter()],
@@ -92,9 +119,10 @@ class AppTextField extends StatelessWidget {
   /// "R$ 1.000,00" at the first keystroke.
   factory AppTextField.currency({
     Key? key,
-    required FocusNode focusNode,
-    required TextEditingController controller,
-    required String hintText,
+    FocusNode? focusNode,
+    TextEditingController? controller,
+    String? hintText,
+    String? initialValue,
     bool readOnly = false,
     bool showSuffixIcon = false,
     int decimalDigits = 2,
@@ -107,12 +135,19 @@ class AppTextField extends StatelessWidget {
     String? Function(String?)? validator,
     String? errorText,
     Color? disabledFillColor,
+    InputDecoration? decoration,
+    bool enabled = true,
+    bool showClearButton = true,
+    bool autofocus = false,
+    TextCapitalization textCapitalization = TextCapitalization.sentences,
+    TextInputAction textInputAction = TextInputAction.done,
   }) {
     return AppTextField.unit(
       key: key,
       focusNode: focusNode,
       controller: controller,
       hintText: hintText,
+      initialValue: initialValue,
       spec: UnitSpec(decimalDigits: decimalDigits, maxDigits: maxDigits, symbol: symbol),
       readOnly: readOnly,
       showSuffixIcon: showSuffixIcon,
@@ -123,6 +158,12 @@ class AppTextField extends StatelessWidget {
       validator: validator,
       errorText: errorText,
       disabledFillColor: disabledFillColor,
+      decoration: decoration,
+      enabled: enabled,
+      showClearButton: showClearButton,
+      autofocus: autofocus,
+      textCapitalization: textCapitalization,
+      textInputAction: textInputAction,
     );
   }
 
@@ -131,9 +172,10 @@ class AppTextField extends StatelessWidget {
   /// Read the value in grams with `UnitSpec.weight.parse(controller.text)`.
   factory AppTextField.weight({
     Key? key,
-    required FocusNode focusNode,
-    required TextEditingController controller,
-    required String hintText,
+    FocusNode? focusNode,
+    TextEditingController? controller,
+    String? hintText,
+    String? initialValue,
     bool readOnly = false,
     bool showSuffixIcon = false,
     void Function(String?)? onChanged,
@@ -143,12 +185,19 @@ class AppTextField extends StatelessWidget {
     String? Function(String?)? validator,
     String? errorText,
     Color? disabledFillColor,
+    InputDecoration? decoration,
+    bool enabled = true,
+    bool showClearButton = true,
+    bool autofocus = false,
+    TextCapitalization textCapitalization = TextCapitalization.sentences,
+    TextInputAction textInputAction = TextInputAction.done,
   }) {
     return AppTextField.unit(
       key: key,
       focusNode: focusNode,
       controller: controller,
       hintText: hintText,
+      initialValue: initialValue,
       spec: UnitSpec.weight,
       readOnly: readOnly,
       showSuffixIcon: showSuffixIcon,
@@ -159,6 +208,12 @@ class AppTextField extends StatelessWidget {
       validator: validator,
       errorText: errorText,
       disabledFillColor: disabledFillColor,
+      decoration: decoration,
+      enabled: enabled,
+      showClearButton: showClearButton,
+      autofocus: autofocus,
+      textCapitalization: textCapitalization,
+      textInputAction: textInputAction,
     );
   }
 
@@ -167,9 +222,10 @@ class AppTextField extends StatelessWidget {
   /// Read the value in centimeters with `UnitSpec.length.parse(controller.text)`.
   factory AppTextField.length({
     Key? key,
-    required FocusNode focusNode,
-    required TextEditingController controller,
-    required String hintText,
+    FocusNode? focusNode,
+    TextEditingController? controller,
+    String? hintText,
+    String? initialValue,
     bool readOnly = false,
     bool showSuffixIcon = false,
     void Function(String?)? onChanged,
@@ -179,12 +235,19 @@ class AppTextField extends StatelessWidget {
     String? Function(String?)? validator,
     String? errorText,
     Color? disabledFillColor,
+    InputDecoration? decoration,
+    bool enabled = true,
+    bool showClearButton = true,
+    bool autofocus = false,
+    TextCapitalization textCapitalization = TextCapitalization.sentences,
+    TextInputAction textInputAction = TextInputAction.done,
   }) {
     return AppTextField.unit(
       key: key,
       focusNode: focusNode,
       controller: controller,
       hintText: hintText,
+      initialValue: initialValue,
       spec: UnitSpec.length,
       readOnly: readOnly,
       showSuffixIcon: showSuffixIcon,
@@ -195,6 +258,12 @@ class AppTextField extends StatelessWidget {
       validator: validator,
       errorText: errorText,
       disabledFillColor: disabledFillColor,
+      decoration: decoration,
+      enabled: enabled,
+      showClearButton: showClearButton,
+      autofocus: autofocus,
+      textCapitalization: textCapitalization,
+      textInputAction: textInputAction,
     );
   }
 
@@ -203,9 +272,10 @@ class AppTextField extends StatelessWidget {
   /// Read the value in milliliters with `UnitSpec.volume.parse(controller.text)`.
   factory AppTextField.volume({
     Key? key,
-    required FocusNode focusNode,
-    required TextEditingController controller,
-    required String hintText,
+    FocusNode? focusNode,
+    TextEditingController? controller,
+    String? hintText,
+    String? initialValue,
     bool readOnly = false,
     bool showSuffixIcon = false,
     void Function(String?)? onChanged,
@@ -215,12 +285,19 @@ class AppTextField extends StatelessWidget {
     String? Function(String?)? validator,
     String? errorText,
     Color? disabledFillColor,
+    InputDecoration? decoration,
+    bool enabled = true,
+    bool showClearButton = true,
+    bool autofocus = false,
+    TextCapitalization textCapitalization = TextCapitalization.sentences,
+    TextInputAction textInputAction = TextInputAction.done,
   }) {
     return AppTextField.unit(
       key: key,
       focusNode: focusNode,
       controller: controller,
       hintText: hintText,
+      initialValue: initialValue,
       spec: UnitSpec.volume,
       readOnly: readOnly,
       showSuffixIcon: showSuffixIcon,
@@ -231,12 +308,30 @@ class AppTextField extends StatelessWidget {
       validator: validator,
       errorText: errorText,
       disabledFillColor: disabledFillColor,
+      decoration: decoration,
+      enabled: enabled,
+      showClearButton: showClearButton,
+      autofocus: autofocus,
+      textCapitalization: textCapitalization,
+      textInputAction: textInputAction,
     );
   }
 
-  final FocusNode focusNode;
-  final TextEditingController controller;
-  final String hintText;
+  /// The field's focus node. When `null`, the widget creates and disposes its own.
+  final FocusNode? focusNode;
+
+  /// The field's controller. When `null`, the widget creates and disposes its own,
+  /// seeded with [initialValue].
+  final TextEditingController? controller;
+
+  /// The field's label and placeholder. When `null`, the label comes from
+  /// [decoration] (`labelText`/`hintText`); when given, it wins over both.
+  final String? hintText;
+
+  /// The text the field opens with, when [controller] is `null`. Passing both is
+  /// a usage error — a controller already carries its own text.
+  final String? initialValue;
+
   final void Function()? onTap;
   final bool readOnly;
   final bool showSuffixIcon;
@@ -272,13 +367,79 @@ class AppTextField extends StatelessWidget {
   /// reaches `parse`.
   final String? suffixText;
 
+  /// Extra decoration for the field. What this widget owns — the floating label,
+  /// the fill, the clear button, [errorText] and [suffixText] — is applied on top;
+  /// everything else (helper, prefix, border, density, padding) comes from here.
+  ///
+  /// A `suffixIcon` given here shows only while the widget has no suffix of its
+  /// own (no clear button and no chevron).
+  ///
+  /// Note on `prefixText`/`suffixText`: the Material `InputDecorator` draws them
+  /// only while the label floats. This widget always floats it
+  /// ([FloatingLabelBehavior.always]), so a `prefixText` passed here shows even
+  /// with the field empty.
+  final InputDecoration? decoration;
+
+  /// Whether the field accepts interaction. `false` while an action is in flight
+  /// (a save, a reload) — different from [readOnly], which is the field that fills
+  /// in by tapping instead of typing.
+  final bool enabled;
+
+  /// Whether the clear button (`✕`) shows while there is text. `false` for a field
+  /// too narrow to spend 24 px on it — a column inside a repeated row.
+  final bool showClearButton;
+
+  /// Whether the field takes the focus as soon as it is shown. Meant for a dialog
+  /// or a sheet that opens with a single field.
+  final bool autofocus;
+
+  final TextCapitalization textCapitalization;
+  final TextInputAction textInputAction;
+
+  @override
+  State<AppTextField> createState() => _AppTextFieldState();
+}
+
+class _AppTextFieldState extends State<AppTextField> {
+  FocusNode? _ownFocusNode;
+  TextEditingController? _ownController;
+
+  FocusNode get _focusNode => widget.focusNode ?? (_ownFocusNode ??= FocusNode());
+
+  TextEditingController get _controller =>
+      widget.controller ?? (_ownController ??= TextEditingController(text: widget.initialValue));
+
+  @override
+  void didUpdateWidget(AppTextField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A controller (or focus node) coming from outside makes the one created
+    // here garbage: drop it right away instead of waiting for dispose.
+    if (widget.controller != null && _ownController != null) {
+      _ownController!.dispose();
+      _ownController = null;
+    }
+    if (widget.focusNode != null && _ownFocusNode != null) {
+      _ownFocusNode!.dispose();
+      _ownFocusNode = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    _ownFocusNode?.dispose();
+    _ownController?.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final TextEditingController controller = _controller;
+
     final InkWell buttonClear = InkWell(
       onTap: () {
-        onChanged?.call('');
+        widget.onChanged?.call('');
         controller.clear();
-        focusNode.requestFocus();
+        _focusNode.requestFocus();
       },
       child: const Icon(Icons.close, size: 24),
     );
@@ -288,48 +449,56 @@ class AppTextField extends StatelessWidget {
     return ValueListenableBuilder<TextEditingValue>(
       valueListenable: controller,
       builder: (_, __, ___) {
-        final Widget iconReturn = showSuffixIcon ? iconChevronRight : const SizedBox.shrink();
         // A readOnly field without onTap is treated as disabled: dimmed and
         // non-interactive (it can neither be focused nor tapped into). With an
         // onTap it is a "tap to pick" field and stays interactive.
-        final bool isDisabled = readOnly && onTap == null;
-        // A disabled field never shows the clear button — erasing the value must
-        // not be allowed (for example a limit derived from the subcategories).
-        final Widget suffixIcon = !isDisabled && controller.text.isNotEmpty ? buttonClear : iconReturn;
+        final bool isDisabled = widget.readOnly && widget.onTap == null;
+        // Neither a disabled nor an unavailable field shows the clear button —
+        // the button is a bare InkWell, so the decorator does not mute it, and a
+        // tap would erase a value the user cannot retype.
+        final Widget? clear =
+            widget.enabled && !isDisabled && widget.showClearButton && controller.text.isNotEmpty ? buttonClear : null;
+        // The slot is only taken when this widget has something to put in it;
+        // otherwise the caller's own suffixIcon (if any) survives the copyWith.
+        final Widget suffix = clear ??
+            (widget.showSuffixIcon ? iconChevronRight : widget.decoration?.suffixIcon ?? const SizedBox.shrink());
 
         return TextFormField(
-          validator: validator,
+          validator: widget.validator,
           controller: controller,
-          enabled: !isDisabled,
-          readOnly: readOnly,
-          focusNode: focusNode,
+          enabled: widget.enabled && !isDisabled,
+          readOnly: widget.readOnly,
+          focusNode: _focusNode,
+          autofocus: widget.autofocus,
           autocorrect: false,
           enableSuggestions: true,
-          textInputAction: TextInputAction.done,
-          keyboardType: keyboardType,
-          maxLines: maxLines,
-          minLines: maxLines,
-          inputFormatters: inputFormatters,
-          textCapitalization: TextCapitalization.sentences,
-          onTapOutside: onTapOutside,
-          decoration: InputDecoration(
+          textInputAction: widget.textInputAction,
+          keyboardType: widget.keyboardType,
+          maxLines: widget.maxLines,
+          minLines: widget.maxLines,
+          inputFormatters: widget.inputFormatters,
+          textCapitalization: widget.textCapitalization,
+          onTapOutside: widget.onTapOutside,
+          // copyWith is `field ?? this.field`, so every null below keeps what the
+          // caller passed in [decoration].
+          decoration: (widget.decoration ?? const InputDecoration()).copyWith(
             floatingLabelBehavior: FloatingLabelBehavior.always,
             filled: true,
-            fillColor: isDisabled ? (disabledFillColor ?? Colors.grey.shade800) : null,
-            hintText: hintText,
-            labelText: hintText,
-            errorText: errorText,
-            suffixText: suffixText,
-            suffixIcon: suffixIcon,
+            fillColor: isDisabled ? (widget.disabledFillColor ?? Colors.grey.shade800) : null,
+            hintText: widget.hintText,
+            labelText: widget.hintText,
+            errorText: widget.errorText,
+            suffixText: widget.suffixText,
+            suffixIcon: suffix,
           ),
-          onTap: onTap,
-          onChanged: onChanged,
-          onSaved: onChanged,
+          onTap: widget.onTap,
+          onChanged: widget.onChanged,
+          onSaved: widget.onChanged,
           onFieldSubmitted: (value) {
-            if (onSubmitted != null) {
-              onSubmitted!(value);
+            if (widget.onSubmitted != null) {
+              widget.onSubmitted!(value);
             } else {
-              onChanged?.call(value);
+              widget.onChanged?.call(value);
             }
           },
         );

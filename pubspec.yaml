@@ -1,6 +1,6 @@
 name: tekton_core
 description: "Kit base compartilhado entre projetos Flutter: widgets, formatters e utilitários."
-version: 0.2.0
+version: 0.3.0
 publish_to: 'none'
 repository: https://github.com/leandrorochaadm/tekton_core
 

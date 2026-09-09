@@ -323,4 +323,380 @@ void main() {
       expect(controller.text, '1.000,00');
     });
   });
+
+  group('AppTextField without external dependencies', () {
+    testWidgets('should type and show the clear button with no focusNode and no controller', (tester) async {
+      await pumpField(tester, const AppTextField(hintText: 'Descrição'));
+
+      expect(find.byIcon(Icons.close), findsNothing);
+
+      await tester.enterText(find.byType(TextFormField), 'abc');
+      await tester.pump();
+
+      expect(find.text('abc'), findsOneWidget);
+      expect(find.byIcon(Icons.close), findsOneWidget);
+    });
+
+    testWidgets('should follow a controller swapped after the first build', (tester) async {
+      await pumpField(tester, const AppTextField(hintText: 'Descrição'));
+
+      final TextEditingController swapped = TextEditingController();
+      addTearDown(swapped.dispose);
+
+      await pumpField(tester, AppTextField(controller: swapped, hintText: 'Descrição'));
+
+      await tester.enterText(find.byType(TextFormField), 'abc');
+      await tester.pump();
+
+      expect(swapped.text, 'abc');
+      expect(find.byIcon(Icons.close), findsOneWidget);
+    });
+
+    test('should reject initialValue together with a controller', () {
+      expect(
+        () => AppTextField(controller: controller, initialValue: 'abc'),
+        throwsAssertionError,
+      );
+    });
+
+    testWidgets('should adopt a focusNode given after the first build', (tester) async {
+      await pumpField(tester, const AppTextField(hintText: 'Descrição'));
+
+      final FocusNode adopted = FocusNode();
+      addTearDown(adopted.dispose);
+
+      await pumpField(tester, AppTextField(focusNode: adopted, hintText: 'Descrição'));
+
+      await tester.tap(find.byType(TextFormField));
+      await tester.pump();
+
+      expect(adopted.hasFocus, isTrue);
+    });
+
+    testWidgets('should open on initialValue, clear button included', (tester) async {
+      await pumpField(tester, const AppTextField(hintText: 'Descrição', initialValue: 'abc'));
+
+      expect(find.text('abc'), findsOneWidget);
+      expect(find.byIcon(Icons.close), findsOneWidget);
+    });
+
+    testWidgets('should not dispose a controller that came from outside', (tester) async {
+      final TextEditingController external = TextEditingController(text: 'abc');
+
+      await pumpField(tester, AppTextField(controller: external, hintText: 'Descrição'));
+      await tester.pumpWidget(const SizedBox());
+
+      expect(() => external.value = const TextEditingValue(text: 'still alive'), returnsNormally);
+      external.dispose();
+    });
+  });
+
+  group('AppTextField.decoration', () {
+    testWidgets('should show the helper, and give the slot to the error text', (tester) async {
+      await pumpField(
+        tester,
+        AppTextField(
+          focusNode: focusNode,
+          controller: controller,
+          hintText: 'Descrição',
+          decoration: const InputDecoration(helperText: 'Como aparece na etiqueta'),
+        ),
+      );
+
+      expect(find.text('Como aparece na etiqueta'), findsOneWidget);
+
+      await pumpField(
+        tester,
+        AppTextField(
+          focusNode: focusNode,
+          controller: controller,
+          hintText: 'Descrição',
+          errorText: 'Informe a descrição',
+          decoration: const InputDecoration(helperText: 'Como aparece na etiqueta'),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Como aparece na etiqueta'), findsNothing);
+      expect(find.text('Informe a descrição'), findsOneWidget);
+    });
+
+    testWidgets('should keep errorMaxLines so a long message is shown whole', (tester) async {
+      const String message = 'Informe a descrição do produto com pelo menos três palavras '
+          'para que ela apareça inteira na etiqueta impressa da prateleira.';
+
+      await pumpField(
+        tester,
+        AppTextField(
+          focusNode: focusNode,
+          controller: controller,
+          hintText: 'Descrição',
+          errorText: message,
+          decoration: const InputDecoration(errorMaxLines: 3),
+        ),
+      );
+
+      expect(find.text(message), findsOneWidget);
+      expect(tester.widget<TextField>(find.byType(TextField)).decoration!.errorMaxLines, 3);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('should show prefixText on an empty field', (tester) async {
+      await pumpField(
+        tester,
+        AppTextField(
+          focusNode: focusNode,
+          controller: controller,
+          hintText: 'Altura',
+          decoration: const InputDecoration(prefixText: 'até '),
+        ),
+      );
+
+      expect(find.text('até '), findsOneWidget);
+    });
+
+    testWidgets('should show prefixIcon and keep the clear button working', (tester) async {
+      await pumpField(
+        tester,
+        AppTextField(
+          focusNode: focusNode,
+          controller: controller,
+          hintText: 'Buscar',
+          decoration: const InputDecoration(prefixIcon: Icon(Icons.search)),
+        ),
+      );
+
+      await tester.enterText(find.byType(TextFormField), 'abc');
+      await tester.pump();
+
+      expect(find.byIcon(Icons.search), findsOneWidget);
+      expect(find.byIcon(Icons.close), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pump();
+
+      expect(controller.text, '');
+      expect(find.byIcon(Icons.search), findsOneWidget);
+    });
+
+    testWidgets('should keep a fillColor from the decoration while the field is not disabled', (tester) async {
+      await pumpField(
+        tester,
+        AppTextField(
+          focusNode: focusNode,
+          controller: controller,
+          hintText: 'Descrição',
+          decoration: const InputDecoration(fillColor: Color(0xFF112233)),
+        ),
+      );
+
+      expect(tester.widget<TextField>(find.byType(TextField)).decoration!.fillColor, const Color(0xFF112233));
+    });
+
+    testWidgets('should show a suffixIcon from the decoration when the clear button is off', (tester) async {
+      await pumpField(
+        tester,
+        AppTextField(
+          focusNode: focusNode,
+          controller: controller,
+          hintText: 'Descrição',
+          showClearButton: false,
+          decoration: const InputDecoration(suffixIcon: Icon(Icons.info_outline)),
+        ),
+      );
+
+      await tester.enterText(find.byType(TextFormField), 'abc');
+      await tester.pump();
+
+      expect(find.byIcon(Icons.info_outline), findsOneWidget);
+      expect(find.byIcon(Icons.close), findsNothing);
+    });
+
+    testWidgets('should take the label from the decoration, and let hintText win over it', (tester) async {
+      await pumpField(
+        tester,
+        AppTextField(
+          focusNode: focusNode,
+          controller: controller,
+          decoration: const InputDecoration(labelText: 'Descrição'),
+        ),
+      );
+
+      expect(find.text('Descrição'), findsOneWidget);
+
+      await pumpField(
+        tester,
+        AppTextField(
+          focusNode: focusNode,
+          controller: controller,
+          hintText: 'Observação',
+          decoration: const InputDecoration(labelText: 'Descrição'),
+        ),
+      );
+
+      expect(find.text('Descrição'), findsNothing);
+      expect(find.text('Observação'), findsWidgets);
+    });
+  });
+
+  group('AppTextField.enabled', () {
+    testWidgets('should refuse typing without dimming the field', (tester) async {
+      await pumpField(
+        tester,
+        AppTextField(
+          focusNode: focusNode,
+          controller: controller,
+          hintText: 'Descrição',
+          enabled: false,
+        ),
+      );
+
+      await tester.enterText(find.byType(TextFormField), 'abc');
+      await tester.pump();
+
+      expect(controller.text, '');
+      expect(tester.widget<TextField>(find.byType(TextField)).decoration!.fillColor, isNull);
+    });
+
+    testWidgets('should hide the clear button on a field with text', (tester) async {
+      controller.text = 'abc';
+
+      await pumpField(
+        tester,
+        AppTextField(
+          focusNode: focusNode,
+          controller: controller,
+          hintText: 'Descrição',
+          enabled: false,
+        ),
+      );
+
+      expect(find.byIcon(Icons.close), findsNothing);
+    });
+  });
+
+  group('AppTextField.showClearButton', () {
+    testWidgets('should hide the clear button on a field with text', (tester) async {
+      controller.text = 'abc';
+
+      await pumpField(
+        tester,
+        AppTextField(
+          focusNode: focusNode,
+          controller: controller,
+          hintText: 'Descrição',
+          showClearButton: false,
+        ),
+      );
+
+      expect(find.byIcon(Icons.close), findsNothing);
+    });
+  });
+
+  group('AppTextField.autofocus', () {
+    testWidgets('should take the focus as soon as the field is shown', (tester) async {
+      await pumpField(
+        tester,
+        AppTextField(
+          focusNode: focusNode,
+          controller: controller,
+          hintText: 'Descrição',
+          autofocus: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(focusNode.hasFocus, isTrue);
+    });
+  });
+
+  group('AppTextField keyboard settings', () {
+    testWidgets('should forward textCapitalization and textInputAction', (tester) async {
+      await pumpField(
+        tester,
+        AppTextField(
+          focusNode: focusNode,
+          controller: controller,
+          hintText: 'Buscar',
+          textCapitalization: TextCapitalization.none,
+          textInputAction: TextInputAction.next,
+        ),
+      );
+
+      final TextField field = tester.widget<TextField>(find.byType(TextField));
+
+      expect(field.textCapitalization, TextCapitalization.none);
+      expect(field.textInputAction, TextInputAction.next);
+    });
+  });
+
+  group('AppTextField factories', () {
+    final Map<String, AppTextField Function()> factories = <String, AppTextField Function()>{
+      'unit': () => AppTextField.unit(
+            spec: UnitSpec.weight,
+            initialValue: '1.000,000',
+            decoration: const InputDecoration(helperText: 'Peso líquido'),
+            enabled: false,
+            showClearButton: false,
+            autofocus: true,
+            textCapitalization: TextCapitalization.none,
+            textInputAction: TextInputAction.next,
+          ),
+      'currency': () => AppTextField.currency(
+            initialValue: '1.000,000',
+            decoration: const InputDecoration(helperText: 'Peso líquido'),
+            enabled: false,
+            showClearButton: false,
+            autofocus: true,
+            textCapitalization: TextCapitalization.none,
+            textInputAction: TextInputAction.next,
+          ),
+      'weight': () => AppTextField.weight(
+            initialValue: '1.000,000',
+            decoration: const InputDecoration(helperText: 'Peso líquido'),
+            enabled: false,
+            showClearButton: false,
+            autofocus: true,
+            textCapitalization: TextCapitalization.none,
+            textInputAction: TextInputAction.next,
+          ),
+      'length': () => AppTextField.length(
+            initialValue: '1.000,000',
+            decoration: const InputDecoration(helperText: 'Peso líquido'),
+            enabled: false,
+            showClearButton: false,
+            autofocus: true,
+            textCapitalization: TextCapitalization.none,
+            textInputAction: TextInputAction.next,
+          ),
+      'volume': () => AppTextField.volume(
+            initialValue: '1.000,000',
+            decoration: const InputDecoration(helperText: 'Peso líquido'),
+            enabled: false,
+            showClearButton: false,
+            autofocus: true,
+            textCapitalization: TextCapitalization.none,
+            textInputAction: TextInputAction.next,
+          ),
+    };
+
+    for (final MapEntry<String, AppTextField Function()> entry in factories.entries) {
+      testWidgets('${entry.key} should build without focusNode, controller or hintText and forward every parameter',
+          (tester) async {
+        await pumpField(tester, entry.value());
+        await tester.pumpAndSettle();
+
+        final TextField field = tester.widget<TextField>(find.byType(TextField));
+
+        expect(find.text('1.000,000'), findsOneWidget);
+        expect(find.text('Peso líquido'), findsOneWidget);
+        expect(field.enabled, isFalse);
+        expect(find.byIcon(Icons.close), findsNothing);
+        expect(field.autofocus, isTrue);
+        expect(field.textCapitalization, TextCapitalization.none);
+        expect(field.textInputAction, TextInputAction.next);
+      });
+    }
+  });
 }

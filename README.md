@@ -10,8 +10,11 @@ dependencies:
   tekton_core:
     git:
       url: https://github.com/leandrorochaadm/tekton_core.git
-      ref: v0.2.0
+      ref: main
 ```
+
+O consumo é pela branch: o commit resolvido fica preso no `pubspec.lock` do app,
+e uma versão nova só chega depois de um `flutter pub upgrade tekton_core`.
 
 ```dart
 import 'package:tekton_core/tekton_core.dart';
@@ -34,24 +37,61 @@ import 'package:tekton_core/tekton_core.dart';
 
 ```dart
 AppTextField(
-  focusNode: focusNode,
-  controller: controller,
   hintText: 'Descrição',
   errorText: state.descriptionError,
   onChanged: controller.onDescriptionChanged,
 )
 ```
 
+**Nada é obrigatório.** Sem `focusNode` e sem `controller`, o campo cria os seus
+e os descarta no fim — os que vêm de fora nunca são descartados. Um formulário
+comum não precisa mais criar os dois à mão, nem virar `StatefulWidget` só por
+isso. Para abrir o campo com um texto, use `initialValue` (só vale quando o
+`controller` é nulo; passar os dois juntos é erro de uso e dispara um `assert`).
+
 - **Botão de limpar** aparece sozinho quando há texto; some quando o campo está
-  desabilitado.
+  desabilitado. Desligue com `showClearButton: false` na coluna estreita demais
+  para gastar 24 px com ele.
 - **Desabilitado** é `readOnly: true` **sem** `onTap`. Com `onTap`, o campo vira
   "toque para selecionar" e continua interativo.
+- **`enabled: false`** é o campo indisponível durante um salvamento: não aceita
+  toque nem digitação e esconde o `✕`, mas **sem** a tarja cinza do desabilitado.
 - **`onSubmitted`** dispara só na ação "done" do teclado; `onChanged` dispara a
   cada tecla. Sem `onSubmitted`, o submit também chama `onChanged`.
 - **`onTapOutside: (_) {}`** impede que toques na tela tirem o foco — útil quando
   a perda de foco é usada como sinal (ex.: "OK" do teclado numérico no iPhone).
+- **`autofocus: true`** abre o teclado junto com a tela — para o diálogo de um
+  campo só.
+- **`textCapitalization`** e **`textInputAction`** trocam os padrões
+  (`sentences` e `done`) — `none` para o campo de busca, `next` para o
+  formulário que encadeia campos.
 - **`disabledFillColor`** ajusta o fundo do estado desabilitado (padrão
   `Colors.grey.shade800`, pensado para tema escuro).
+
+### `decoration` — o resto da decoração é do chamador
+
+`helperText`, `errorMaxLines`, `prefixText`, `prefixIcon`, `border`, `isDense`,
+`contentPadding` e qualquer outro campo da `InputDecoration` do Material vêm
+daqui:
+
+```dart
+AppTextField(
+  hintText: 'Descrição',
+  decoration: const InputDecoration(
+    helperText: 'Como aparece na etiqueta',
+    prefixIcon: Icon(Icons.search),
+  ),
+)
+```
+
+O widget aplica **por cima** só o que é dele — rótulo flutuante, preenchimento,
+botão de limpar, `errorText` e `suffixText`; o resto passa intacto. Duas
+precedências que valem lembrar:
+
+- `hintText` vence o `labelText` e o `hintText` da `decoration`. Deixe-o nulo
+  para que o rótulo venha de lá.
+- um `suffixIcon` da `decoration` aparece só quando o widget não tem sufixo
+  próprio (nem `✕`, nem chevron).
 
 ## Campos por unidade
 
@@ -68,10 +108,10 @@ digitar um formato inválido.
 | `AppTextField.volume` | mililitro | `1.000,000 L` | 3 | sufixo `L` |
 
 ```dart
-AppTextField.currency(focusNode: f, controller: c, hintText: 'Valor');   // R$ 1.000,00
-AppTextField.weight(focusNode: f, controller: c, hintText: 'Peso');      // 1.000,000  kg
-AppTextField.length(focusNode: f, controller: c, hintText: 'Altura');    // 1.000,00   m
-AppTextField.volume(focusNode: f, controller: c, hintText: 'Volume');    // 1.000,000  L
+AppTextField.currency(hintText: 'Valor');    // R$ 1.000,00
+AppTextField.weight(hintText: 'Peso');      // 1.000,000  kg
+AppTextField.length(hintText: 'Altura');    // 1.000,00   m
+AppTextField.volume(hintText: 'Volume');    // 1.000,000  L
 ```
 
 Nenhum deles expõe `decimalDigits`, `maxDigits` ou a unidade: a grandeza é
