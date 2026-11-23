@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0
+
+Compatível com a 0.3.0: o parâmetro novo é opcional e o default repete o
+comportamento de hoje.
+
+- `AppTextField.obscureText` — esconde o texto digitado (campo de senha). Exige
+  `maxLines: 1`; outro valor dispara um `assert`.
+
 ## 0.3.0
 
 Compatível com a 0.2.0: tudo o que entra é opcional e o default repete o

@@ -38,10 +38,15 @@ class AppTextField extends StatefulWidget {
     this.autofocus = false,
     this.textCapitalization = TextCapitalization.sentences,
     this.textInputAction = TextInputAction.done,
+    this.obscureText = false,
   }) : assert(
-          controller == null || initialValue == null,
-          'Pass initialValue only when controller is null — a controller already carries its own text.',
-        );
+         controller == null || initialValue == null,
+         'Pass initialValue only when controller is null — a controller already carries its own text.',
+       ),
+       assert(
+         !obscureText || maxLines == 1,
+         'obscureText requires maxLines: 1.',
+       );
 
   /// Numeric field for any quantity, configured by [spec].
   ///
@@ -148,7 +153,11 @@ class AppTextField extends StatefulWidget {
       controller: controller,
       hintText: hintText,
       initialValue: initialValue,
-      spec: UnitSpec(decimalDigits: decimalDigits, maxDigits: maxDigits, symbol: symbol),
+      spec: UnitSpec(
+        decimalDigits: decimalDigits,
+        maxDigits: maxDigits,
+        symbol: symbol,
+      ),
       readOnly: readOnly,
       showSuffixIcon: showSuffixIcon,
       onChanged: onChanged,
@@ -396,6 +405,9 @@ class AppTextField extends StatefulWidget {
   final TextCapitalization textCapitalization;
   final TextInputAction textInputAction;
 
+  /// Whether the typed text is hidden (a password field). Requires `maxLines: 1`.
+  final bool obscureText;
+
   @override
   State<AppTextField> createState() => _AppTextFieldState();
 }
@@ -404,10 +416,12 @@ class _AppTextFieldState extends State<AppTextField> {
   FocusNode? _ownFocusNode;
   TextEditingController? _ownController;
 
-  FocusNode get _focusNode => widget.focusNode ?? (_ownFocusNode ??= FocusNode());
+  FocusNode get _focusNode =>
+      widget.focusNode ?? (_ownFocusNode ??= FocusNode());
 
   TextEditingController get _controller =>
-      widget.controller ?? (_ownController ??= TextEditingController(text: widget.initialValue));
+      widget.controller ??
+      (_ownController ??= TextEditingController(text: widget.initialValue));
 
   @override
   void didUpdateWidget(AppTextField oldWidget) {
@@ -457,7 +471,12 @@ class _AppTextFieldState extends State<AppTextField> {
         // the button is a bare InkWell, so the decorator does not mute it, and a
         // tap would erase a value the user cannot retype.
         final Widget? clear =
-            widget.enabled && !isDisabled && widget.showClearButton && controller.text.isNotEmpty ? buttonClear : null;
+            widget.enabled &&
+                !isDisabled &&
+                widget.showClearButton &&
+                controller.text.isNotEmpty
+            ? buttonClear
+            : null;
         // The slot is only taken when this widget has something to put in it;
         // otherwise the null below leaves the caller's own suffixIcon — or no
         // suffixIcon at all — untouched by the copyWith.
@@ -467,7 +486,8 @@ class _AppTextFieldState extends State<AppTextField> {
         // `SizedBox.shrink()` in the slot spends 48 pt showing nothing. On a
         // column narrow enough to turn the clear button off, that is half the
         // field.
-        final Widget? suffix = clear ?? (widget.showSuffixIcon ? iconChevronRight : null);
+        final Widget? suffix =
+            clear ?? (widget.showSuffixIcon ? iconChevronRight : null);
 
         return TextFormField(
           validator: widget.validator,
@@ -483,6 +503,7 @@ class _AppTextFieldState extends State<AppTextField> {
           maxLines: widget.maxLines,
           minLines: widget.maxLines,
           inputFormatters: widget.inputFormatters,
+          obscureText: widget.obscureText,
           textCapitalization: widget.textCapitalization,
           onTapOutside: widget.onTapOutside,
           // copyWith is `field ?? this.field`, so every null below keeps what the
@@ -490,7 +511,9 @@ class _AppTextFieldState extends State<AppTextField> {
           decoration: (widget.decoration ?? const InputDecoration()).copyWith(
             floatingLabelBehavior: FloatingLabelBehavior.always,
             filled: true,
-            fillColor: isDisabled ? (widget.disabledFillColor ?? Colors.grey.shade800) : null,
+            fillColor: isDisabled
+                ? (widget.disabledFillColor ?? Colors.grey.shade800)
+                : null,
             hintText: widget.hintText,
             labelText: widget.hintText,
             errorText: widget.errorText,
